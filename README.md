@@ -1,6 +1,6 @@
 # Ecommerce
-This is Ecommerce website is built using React and Django
-The feature included in this projects are:
+This is Ecommerce website is built using React and Django.
+The features included in this projects are:
 
 
   1. User Profile with Orders
