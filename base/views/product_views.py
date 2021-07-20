@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.contrib.auth.models import User
 from base.models import Product,Review
 from base.serializers import ProductSerializer
 from rest_framework import status
@@ -46,6 +47,9 @@ def getTopProducts(request):
 @api_view(['GET'])
 def getProduct(request, pk):
     product =Product.objects.get(_id=pk)
+    # user = User.objects.get(user=request.user)
+    print(product.user.id)
+    print(request.user)
     serializer = ProductSerializer(product, many=False)  
     return Response(serializer.data)
 
@@ -54,14 +58,17 @@ def getProduct(request, pk):
 @permission_classes([IsAdminUser])
 def createProduct(request):
     user = request.user
+    data = request.data
+    print("hello request",request.FILES.get('image'))
     product =Product.objects.create(
         user=user,
-        name='sample name',
-        price=0,
-        brand='sample brand',
-        countInStock= 0,
-        category='sample category',
-        description=''
+        name=data['name'],
+        image = request.FILES.get('image'),
+        price=data['price'],
+        brand= data['brand'],
+        countInStock=data['countInStock'],
+        category= data['category'],
+        description=data['description']
     )
     serializer = ProductSerializer(product, many=False) 
     return Response(serializer.data)
@@ -71,6 +78,7 @@ def createProduct(request):
 @permission_classes([IsAdminUser])
 def updateProduct(request, pk):
     data = request.data
+  
     product =Product.objects.get(_id=pk)
 
     product.name = data['name']
@@ -97,6 +105,7 @@ def deleteProduct(request, pk):
 def uploadImage(request):
     data = request.data
     product_id = data['product_id']
+    print("jafds",data)
     product = Product.objects.get(_id=product_id)
     product.image = request.FILES.get('image')
     product.save()

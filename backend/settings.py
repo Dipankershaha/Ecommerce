@@ -191,5 +191,5 @@ CORS_ALLOW_ALL_ORIGINS = True
 # cloudinary.config( 
 #   cloud_name = config('cloud_name'), 
 #   api_key = config('api_key'), 
-#   api_secret = config('api_secret) 
+#   api_secret = config('api_secret')
 # )
