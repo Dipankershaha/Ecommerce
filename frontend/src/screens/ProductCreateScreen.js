@@ -6,12 +6,16 @@ import { Button, Form,Row, Col } from 'react-bootstrap';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import FormContainer from '../components/FormContainer';
-import { listProductDetails, updateProduct, createProduct } from '../actions/productActions';
+import { listProductDetails,listProducts, updateProduct,createProduct } from '../actions/productActions';
 import { PRODUCT_UPDATE_RESET } from '../constants/productConstants';
 
-const ProductEditScreen = ({match, history}) => {
+const ProductCreateScreen = ({match, history}) => {
 
-    const productId = match.params.id
+  const dispatch = useDispatch()
+
+  const userLogin = useSelector(state => state.userLogin)
+    const {userInfo} = userLogin
+
 
     const [name, setName] = useState('')
     const [price, setPrice] = useState(0)
@@ -23,88 +27,93 @@ const ProductEditScreen = ({match, history}) => {
     const [uploading, setUploading] = useState(false)
     
     
-    
-    const dispatch = useDispatch()
-
-    const productDetails = useSelector(state => state.productDetails)
-    const {error, loading, product} = productDetails
-
     const productCreate = useSelector(state => state.productCreate)
     const {loading:loadingCreate, error:errorCreate, success:successCreate, product:createdProduct} = productCreate
-
-    const productUpdate = useSelector(state => state.productUpdate)
-    const {error:errorUpdate, loading:loadingUpdate, success:successUpdate} = productUpdate
-
+    
     useEffect(() =>{
-        if(successUpdate){
-            dispatch({type: PRODUCT_UPDATE_RESET})
-            history.push('/admin/productlist')
-        }else{
-            if(!product.name || product._id !== Number(productId)){
-                dispatch(listProductDetails(productId))
-            }else{
-                setName(product.name)
-                setPrice(product.price)
-                setImage(product.image)
-                setBrand(product.brand)
-                setCategory(product.category)
-                setCountInStock(product.countInStock)
-                setDescription(product.description)
-            }
-        }
-       
-            
         
-    }, [dispatch, product, productId, history, successUpdate])
+      if(successCreate){
+        console.log("hello")
+        // history.push(`/`)
+        history.push(`/admin/product/${createdProduct._id}/edit`)
+    }else{
+        dispatch(listProducts(''))
+    }
+    
+},[dispatch, history, userInfo,successCreate,createdProduct])
 
     const submitHandler = (e) => {
         e.preventDefault()
-        dispatch(updateProduct({
-            _id:productId,
-            name,
-            price,
-            image,
-            brand,
-            category,
-            countInStock,
-            description
-        }))
-        
     }
+
+    
 
     const uploadFileHandler = async(e) => {
         const file = e.target.files[0]
-        const formData = new FormData()
-        formData.append('image', file)
-        formData.append('product_id', productId)
+        console.log(e.target.files)
+        setImage(file)
+        // let formData = new FormData()
+        // formData.append('image', file)
+        // formData.append('name', file.name)
+        // console.log(formData);
         
         setUploading(true)
 
-        try {
-            const config = {
-                headers :{
-                    'Content-type': 'multipart/form-data'
-                }
-            }
-            const {data} = await axios.post('/api/products/upload/', formData, config)
-            setImage(data)
-            setUploading(false)
-        } catch (error) {
-            setUploading(false)
-        }
+        // try {
+        //     const config = {
+        //         headers :{
+        //             'Content-type': 'multipart/form-data'
+        //         }
+        //     }
+        //     // const {data} = await axios.post('/api/products/upload/', formData, config)
+        //     setImage(formData)
+        //     setUploading(false)
+        // } catch (error) {
+        //     setUploading(false)
+        // }
     }
-    const createProductHandler = () =>{
-        dispatch(createProduct({
-            _id:productId,
-            name,
-            price,
-            image,
-            brand,
-            category,
-            countInStock,
-            description
-        }));
-        history.push(`/admin/product/create`)
+    const createProductHandler = async(e) =>{
+      e.preventDefault()
+    //   dispatch(createProduct({
+    //     // _id:productId,
+    //     name,
+    //     price,
+    //     image,
+    //     brand,
+    //     category,
+    //     countInStock,
+    //     description
+    // }));
+    const formData = new FormData();
+    formData.append('name',name)
+    formData.append('price',price)
+    formData.append('image',image)
+    formData.append('brand',brand)
+    formData.append('category',category)
+    formData.append('countInStock',countInStock)
+    formData.append('description',description)
+    dispatch(createProduct(formData))
+    
+    // try {
+    //       const config = {
+    //           headers :{
+    //               'Content-type': 'multipart/form-data',
+    //               Authorization : `Bearer ${userInfo.token}`
+    //           }
+    //       }
+    //       setUploading(true)
+    //       const {data} = await axios.post('/api/products/create/', formData, config)
+    //       if(data){
+    //         setUploading(false)
+    //       }
+          
+    //   } catch (error) {
+    //       setUploading(false)
+    //   }
+      // if(data){
+        history.push(`/`)
+      // }
+        // history.push(`/admin/product/create`)
     }
 
     return (
@@ -114,10 +123,10 @@ const ProductEditScreen = ({match, history}) => {
             </Link>
             <FormContainer>
             <h1>Edit Product</h1>
-            {loadingUpdate && <Loader/>}
-            {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
-                {loading ? <Loader/> : error ? <Message variant='danger'>{error}</Message> : (
-                    <Form onSubmit={submitHandler}>
+            {/* {loadingUpdate && <Loader/>} */}
+            {/* {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>} */}
+                {/* {loading ? <Loader/> : error ? <Message variant='danger'>{error}</Message> : ( */}
+                   { <Form onSubmit={createProductHandler}>
                     <Form.Group controlId='name'>
                         <Form.Label>Name</Form.Label>
                         <Form.Control
@@ -159,7 +168,7 @@ const ProductEditScreen = ({match, history}) => {
                         >
 
                          </Form.File>
-                         {uploading && <Loader/>}
+                         {/* {uploading && <Loader/>} */}
                     </Form.Group>
 
                     <Form.Group controlId='brand'>
@@ -208,14 +217,14 @@ const ProductEditScreen = ({match, history}) => {
                     </Form.Group>
                     
                     <Button type='submit' variant='primary'>
-                        Update
+                        Create
                     </Button>
                 </Form>
-                )}
+                }
                 
             </FormContainer>
         </div>
     );
 };
 
-export default ProductEditScreen;
+export default ProductCreateScreen;
